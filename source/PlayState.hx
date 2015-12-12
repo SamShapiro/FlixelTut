@@ -9,6 +9,7 @@ import flixel.util.FlxMath;
 import flixel.addons.editors.ogmo.FlxOgmoLoader;
 import flixel.tile.FlxTilemap;
 import flixel.FlxObject;
+import flixel.FlxCamera;
 
 /**
  * A FlxState which can be used for the actual gameplay.
@@ -43,6 +44,7 @@ class PlayState extends FlxState
 		_player = new Player();
 		_map.loadEntities(placeEntities, "entities");
 		add(_player);
+		FlxG.camera.follow(_player, FlxCamera.STYLE_TOPDOWN, 1);
 		super.create();
 	}
 	
