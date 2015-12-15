@@ -22,6 +22,9 @@ class PlayState extends FlxState
 	private var _mWalls:FlxTilemap;
 	private var _grpCoins:FlxTypedGroup<Coin>;
 	private var _grpEnemies:FlxTypedGroup<Enemy>;
+	private var _hud:HUD;
+	private var _money:Int = 0;
+	private var _health:Int = 3;
 	
 	private function placeEntities(entityName:String, entityData:Xml):Void
 	{
@@ -47,7 +50,11 @@ class PlayState extends FlxState
 	private function playerTouchCoin(P:Player, C:Coin):Void
 	{
 		if (P.alive && P.exists && C.alive && C.exists)
+		{
 			C.kill();
+			_money++;
+			_hud.updateHUD(_health, _money);
+		}	
 	}
 	
 	/**
@@ -73,6 +80,10 @@ class PlayState extends FlxState
 		add(_player);
 		
 		FlxG.camera.follow(_player, FlxCamera.STYLE_TOPDOWN, 1);
+		
+		_hud = new HUD();
+		add(_hud);
+		
 		super.create();
 	}
 	
