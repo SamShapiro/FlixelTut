@@ -11,12 +11,16 @@ import flixel.addons.editors.ogmo.FlxOgmoLoader;
 import flixel.tile.FlxTilemap;
 import flixel.FlxObject;
 import flixel.FlxCamera;
+using flixel.util.FlxSpriteUtil;
 
 /**
  * A FlxState which can be used for the actual gameplay.
  */
 class PlayState extends FlxState
 {
+	
+	private var _inCombat:Bool = false;
+	private var _combatHud:CombatHUD;
 	private var _player:Player;
 	private var _map:FlxOgmoLoader;
 	private var _mWalls:FlxTilemap;
@@ -57,6 +61,22 @@ class PlayState extends FlxState
 		}	
 	}
 	
+	private function playerTouchEnemy(P:Player, E:Enemy):Void
+	{
+		if (P.alive && P.exists && E.alive && E.exists && !E.isFlickering())
+		{
+			startCombat(E);
+		}
+	}
+	
+	private function startCombat(E:Enemy):Void
+	{
+		_inCombat = true;
+		_player.active = false;
+		_grpEnemies.active = false;
+		_combatHud.initCombat(_health, E);
+	}
+	
 	/**
 	 * Function that is called up when to state is created to set it up. 
 	 */
@@ -84,6 +104,9 @@ class PlayState extends FlxState
 		_hud = new HUD();
 		add(_hud);
 		
+		_combatHud = new CombatHUD();
+		add(_combatHud);
+		
 		super.create();
 	}
 	
@@ -102,10 +125,33 @@ class PlayState extends FlxState
 	override public function update():Void
 	{
 		super.update();
-		FlxG.collide(_player, _mWalls);
-		FlxG.overlap(_player, _grpCoins, playerTouchCoin);
-		FlxG.collide(_grpEnemies, _mWalls);
-		_grpEnemies.forEachAlive(checkEnemyVision);
+		if (!_inCombat)
+		{
+			FlxG.collide(_player, _mWalls);
+			FlxG.overlap(_player, _grpCoins, playerTouchCoin);
+			FlxG.collide(_grpEnemies, _mWalls);
+			_grpEnemies.forEachAlive(checkEnemyVision);
+			FlxG.overlap(_player, _grpEnemies, playerTouchEnemy);
+		}
+		else
+		{
+			if (!_combatHud.visible)
+			{
+				_health = _combatHud.playerHealth;
+				_hud.updateHUD(_health, _money);
+				if (_combatHud.outcome == VICTORY)
+				{
+					_combatHud.e.kill();
+				}
+				else
+				{
+					_combatHud.e.flicker();
+				}
+			_inCombat = false;
+			_player.active = true;
+			_grpEnemies.active = true;
+			}
+		}
 	}
 	
 	private function checkEnemyVision(e:Enemy):Void
